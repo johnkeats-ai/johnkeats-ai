@@ -57,6 +57,11 @@ function connectWebsocket() {
     websocket.onmessage = (event) => {
         const adkEvent = JSON.parse(event.data);
         
+        if (adkEvent.type === 'reconnecting') {
+            updateStatus("reconnecting...", 'SILENCE');
+            return;
+        }
+
         // Handle Audio Output
         if (adkEvent.content && adkEvent.content.parts) {
             for (const part of adkEvent.content.parts) {
@@ -118,7 +123,19 @@ function base64ToArray(base64) {
 
 function audioRecorderHandler(pcmData) {
     if (websocket && websocket.readyState === WebSocket.OPEN && is_audio) {
-        websocket.send(pcmData);
+        // Simple mic gating: calculate average amplitude
+        const samples = new Int16Array(pcmData);
+        let sum = 0;
+        for (let i = 0; i < samples.length; i++) {
+            sum += Math.abs(samples[i]);
+        }
+        const avg = sum / samples.length;
+        
+        // Only send if average amplitude is above noise floor (approx 150)
+        // This helps prevent session timeouts due to continuous silence streaming
+        if (avg > 150) {
+            websocket.send(pcmData);
+        }
     }
 }
 
