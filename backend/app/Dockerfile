@@ -18,10 +18,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies
 COPY pyproject.toml .
+# Create placeholder directories to satisfy setuptools during dependency resolution
+RUN mkdir keats_agent tools && touch keats_agent/__init__.py tools/__init__.py
 RUN pip install --no-cache-dir .
 
 # Copy project
 COPY . .
+# Re-install project code with actual content
+RUN pip install --no-cache-dir .
 
 # Expose port
 EXPOSE 8080
