@@ -11,7 +11,8 @@ from tools.passage_tools import (
 
 # Helper to load knowledge base files
 def load_kb():
-    kb_path = Path(__file__).parent.parent.parent.parent / "knowledge-base"
+    # Knowledge base is now located in the app root (backend/app/knowledge-base)
+    kb_path = Path(__file__).parent.parent / "knowledge-base"
     kb_content = ""
     if not kb_path.exists():
         return kb_content

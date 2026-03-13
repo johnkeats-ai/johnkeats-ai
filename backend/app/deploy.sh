@@ -20,6 +20,9 @@ gcloud run deploy ${SERVICE_NAME} \
     --region ${REGION} \
     --project ${PROJECT_ID} \
     --allow-unauthenticated \
+    --min-instances=1 \
+    --timeout=300 \
+    --session-affinity \
     --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},KEATS_MODEL=gemini-live-2.5-flash-native-audio,KEATS_VOICE_NAME=Achird,APP_NAME=johnkeats-ai"
 
 echo "✅ Deployment complete!"
