@@ -10,6 +10,7 @@ const userId = "demo-user";
 const sessionId = "demo-session-" + Math.random().toString(36).substring(7);
 let websocket = null;
 let is_audio = false;
+let fadeTimeout = null;
 
 // DOM Elements
 const statusText = document.getElementById("statusText");
@@ -39,8 +40,8 @@ function displayMessage(text, duration = 5000) {
     messageOverlay.style.opacity = 1;
     
     // Fade out after duration
-    if (this.fadeTimeout) clearTimeout(this.fadeTimeout);
-    this.fadeTimeout = setTimeout(() => {
+    if (fadeTimeout) clearTimeout(fadeTimeout);
+    fadeTimeout = setTimeout(() => {
         messageOverlay.style.opacity = 0;
     }, duration);
 }
@@ -66,7 +67,8 @@ function connectWebsocket() {
         if (adkEvent.content && adkEvent.content.parts) {
             for (const part of adkEvent.content.parts) {
                 if (part.inlineData && part.inlineData.mimeType.startsWith("audio/pcm") && audioPlayerNode) {
-                    audioPlayerNode.port.postMessage(base64ToArray(part.inlineData.data));
+                    const audioData = base64ToArray(part.inlineData.data);
+                    audioPlayerNode.port.postMessage(audioData);
                     orb.setState('KEATS_SPEAKING', 0.5); // Baseline intensity
                 }
             }
@@ -92,6 +94,7 @@ function connectWebsocket() {
         }
 
         if (adkEvent.interrupted) {
+            console.warn("[AUDIO] Gemini interrupted - clearing buffers");
             if (audioPlayerNode) {
                 audioPlayerNode.port.postMessage({ command: "endOfAudio" });
             }
@@ -107,10 +110,7 @@ function connectWebsocket() {
     websocket.onerror = (e) => {
         console.error("WebSocket error:", e);
         updateStatus("connection error", 'SILENCE');
-    };
-}
-
-// Audio Utils
+// Decode Base64 data to Array
 function base64ToArray(base64) {
     let standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
     while (standardBase64.length % 4) standardBase64 += '=';
@@ -121,21 +121,12 @@ function base64ToArray(base64) {
     return bytes.buffer;
 }
 
+// Audio recorder handler
 function audioRecorderHandler(pcmData) {
     if (websocket && websocket.readyState === WebSocket.OPEN && is_audio) {
-        // Simple mic gating: calculate average amplitude
-        const samples = new Int16Array(pcmData);
-        let sum = 0;
-        for (let i = 0; i < samples.length; i++) {
-            sum += Math.abs(samples[i]);
-        }
-        const avg = sum / samples.length;
-        
-        // Only send if average amplitude is above noise floor (approx 150)
-        // This helps prevent session timeouts due to continuous silence streaming
-        if (avg > 150) {
-            websocket.send(pcmData);
-        }
+        // Send audio as binary WebSocket frame (more efficient than base64 JSON)
+        websocket.send(pcmData);
+        // console.log("[CLIENT TO AGENT] Sent audio chunk: %s bytes", pcmData.byteLength);
     }
 }
 
