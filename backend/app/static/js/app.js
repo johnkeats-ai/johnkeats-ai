@@ -11,6 +11,7 @@ const sessionId = "demo-session-" + Math.random().toString(36).substring(7);
 let websocket = null;
 let is_audio = false;
 let fadeTimeout = null;
+let keatsSpeakingTimeout = null;
 
 // DOM Elements
 const statusText = document.getElementById("statusText");
@@ -56,7 +57,13 @@ function connectWebsocket() {
     };
 
     websocket.onmessage = (event) => {
-        const adkEvent = JSON.parse(event.data);
+        let adkEvent;
+        try {
+            adkEvent = JSON.parse(event.data);
+        } catch (e) {
+            console.error("Failed to parse WebSocket message:", e);
+            return;
+        }
         
         if (adkEvent.type === 'reconnecting') {
             updateStatus("reconnecting...", 'SILENCE');
@@ -69,7 +76,13 @@ function connectWebsocket() {
                 if (part.inlineData && part.inlineData.mimeType.startsWith("audio/pcm") && audioPlayerNode) {
                     const audioData = base64ToArray(part.inlineData.data);
                     audioPlayerNode.port.postMessage(audioData);
-                    orb.setState('KEATS_SPEAKING', 0.5); // Baseline intensity
+                    
+                    // State Detection: KEATS_SPEAKING
+                    orb.setState('KEATS_SPEAKING', 0.5);
+                    if (keatsSpeakingTimeout) clearTimeout(keatsSpeakingTimeout);
+                    keatsSpeakingTimeout = setTimeout(() => {
+                        orb.setState('SILENCE');
+                    }, 5000); // 5s fallback safety
                 }
             }
         }
@@ -90,6 +103,7 @@ function connectWebsocket() {
         }
 
         if (adkEvent.turnComplete) {
+            if (keatsSpeakingTimeout) clearTimeout(keatsSpeakingTimeout);
             updateStatus("listening", 'SILENCE');
         }
 
@@ -98,6 +112,7 @@ function connectWebsocket() {
             if (audioPlayerNode) {
                 audioPlayerNode.port.postMessage({ command: "endOfAudio" });
             }
+            if (keatsSpeakingTimeout) clearTimeout(keatsSpeakingTimeout);
             updateStatus("listening", 'SILENCE');
         }
     };
@@ -110,6 +125,9 @@ function connectWebsocket() {
     websocket.onerror = (e) => {
         console.error("WebSocket error:", e);
         updateStatus("connection error", 'SILENCE');
+    };
+}
+
 // Decode Base64 data to Array
 function base64ToArray(base64) {
     let standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
@@ -126,7 +144,17 @@ function audioRecorderHandler(pcmData) {
     if (websocket && websocket.readyState === WebSocket.OPEN && is_audio) {
         // Send audio as binary WebSocket frame (more efficient than base64 JSON)
         websocket.send(pcmData);
-        // console.log("[CLIENT TO AGENT] Sent audio chunk: %s bytes", pcmData.byteLength);
+        
+        // Pulse orb for user speaking based on activity
+        const samples = new Int16Array(pcmData);
+        let sum = 0;
+        for (let i = 0; i < samples.length; i++) {
+            sum += Math.abs(samples[i]);
+        }
+        const avg = sum / samples.length;
+        if (avg > 100) { // Very low threshold for visual pulse
+            orb.setState('USER_SPEAKING', Math.min(avg / 1000, 1.0));
+        }
     }
 }
 
