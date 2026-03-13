@@ -1,29 +1,26 @@
 #!/bin/bash
+set -e
 
-# Configuration
 PROJECT_ID="johnkeats-ai"
 REGION="us-central1"
 SERVICE_NAME="johnkeats-ai"
-IMAGE_NAME="us-central1-docker.pkg.dev/${PROJECT_ID}/app-repo/${SERVICE_NAME}"
+REPO_NAME="johnkeats-ai"
+IMAGE_NAME="johnkeats-ai"
 
-echo "🚀 Starting deployment for ${SERVICE_NAME}..."
+# Build
+gcloud builds submit \
+  --tag "${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:latest" \
+  . \
+  --project=${PROJECT_ID}
 
-# Build the image using Cloud Build
-echo "📦 Building container image..."
-gcloud builds submit --tag ${IMAGE_NAME} --project ${PROJECT_ID} .
-
-# Deploy to Cloud Run
-echo "🚢 Deploying to Cloud Run..."
+# Deploy
 gcloud run deploy ${SERVICE_NAME} \
-    --image ${IMAGE_NAME} \
-    --platform managed \
-    --region ${REGION} \
-    --project ${PROJECT_ID} \
-    --allow-unauthenticated \
-    --min-instances=1 \
-    --timeout=300 \
-    --session-affinity \
-    --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},KEATS_MODEL=gemini-live-2.5-flash-native-audio,KEATS_VOICE_NAME=Achird,APP_NAME=johnkeats-ai"
+  --image="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:latest" \
+  --region=${REGION} \
+  --allow-unauthenticated \
+  --memory=1Gi \
+  --timeout=300 \
+  --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION}" \
+  --project=${PROJECT_ID}
 
-echo "✅ Deployment complete!"
-gcloud run services describe ${SERVICE_NAME} --platform managed --region ${REGION} --project ${PROJECT_ID} --format 'value(status.url)'
+echo "Deployed to: $(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format='value(status.url)' --project=${PROJECT_ID})"

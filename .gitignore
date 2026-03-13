@@ -5,4 +5,5 @@ token.json
 __pycache__/
 *.pyc
 .DS_Store
-\n.local_only/
+.local_only/
+KeatsianAI/
