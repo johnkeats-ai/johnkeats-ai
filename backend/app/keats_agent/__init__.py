@@ -1,5 +1,1 @@
-"""Google Search Agent package."""
-
-from .agent import agent
-
-__all__ = ["agent"]
+from keats_agent.agent import keats_agent

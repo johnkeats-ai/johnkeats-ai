@@ -20,29 +20,11 @@ from google.genai import types
 
 # Load environment variables from env_file BEFORE importing agent
 env_path = Path(__file__).parent.absolute() / "env_file"
-print(f"Loading environment from: {env_path}")
-loaded = load_dotenv(str(env_path))
-print(f"load_dotenv result: {loaded}")
-
-if not os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
-    print("Warning: GOOGLE_GENAI_USE_VERTEXAI not found in environment. Attempting manual load from env_file.")
-    try:
-        with open(env_path, "r") as f:
-            for line in f:
-                if "=" in line and not line.startswith("#"):
-                    key, value = line.strip().split("=", 1)
-                    os.environ[key] = value
-        print("Manual load complete.")
-    except Exception as e:
-        print(f"Manual load failed: {e}")
-
-print(f"GOOGLE_GENAI_USE_VERTEXAI: {os.environ.get('GOOGLE_GENAI_USE_VERTEXAI')}")
-print(f"GOOGLE_CLOUD_PROJECT: {os.environ.get('GOOGLE_CLOUD_PROJECT')}")
+load_dotenv(str(env_path))
 
 # Import agent after loading environment variables
 # pylint: disable=wrong-import-position
-import os
-from keats_agent.agent import agent  # noqa: E402
+from keats_agent.agent import keats_agent
 
 # Configure logging
 logging.basicConfig(
@@ -55,7 +37,7 @@ logger = logging.getLogger(__name__)
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 # Application name constant
-APP_NAME = "bidi-demo"
+APP_NAME = "johnkeats-ai"
 
 # ========================================
 # Phase 1: Application Initialization (once at startup)
@@ -71,7 +53,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 session_service = InMemorySessionService()
 
 # Define your runner
-runner = Runner(app_name=APP_NAME, agent=agent, session_service=session_service)
+runner = Runner(app_name=APP_NAME, agent=keats_agent, session_service=session_service)
 
 # ========================================
 # HTTP Endpoints
@@ -120,33 +102,28 @@ async def websocket_endpoint(
     # Automatically determine response modality based on model architecture
     # Native audio models (containing "native-audio" in name)
     # ONLY support AUDIO response modality.
-    # Half-cascade models support both TEXT and AUDIO,
-    # we default to TEXT for better performance.
-    model_name = agent.model
+    model_name = keats_agent.model
     is_native_audio = "native-audio" in model_name.lower()
 
     if is_native_audio:
         # Native audio models require AUDIO response modality
-        # with audio transcription
-        response_modalities = ["AUDIO"]
-
-        # Build RunConfig with optional proactivity and affective dialog
-        # These features are only supported on native audio models
         run_config = RunConfig(
             streaming_mode=StreamingMode.BIDI,
-            response_modalities=response_modalities,
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=os.getenv("KEATS_VOICE_NAME", "Achird")
+                    )
+                )
+            ),
             input_audio_transcription=types.AudioTranscriptionConfig(),
             output_audio_transcription=types.AudioTranscriptionConfig(),
             session_resumption=types.SessionResumptionConfig(),
-            proactivity=(
-                types.ProactivityConfig(proactive_audio=True) if proactivity else None
-            ),
-            enable_affective_dialog=affective_dialog if affective_dialog else None,
         )
         logger.debug(
             f"Native audio model detected: {model_name}, "
-            f"using AUDIO response modality, "
-            f"proactivity={proactivity}, affective_dialog={affective_dialog}"
+            f"using AUDIO response modality with voice: {os.getenv('KEATS_VOICE_NAME')}"
         )
     else:
         # Half-cascade models support TEXT response modality
