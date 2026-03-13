@@ -17,6 +17,8 @@ Built using the **ADK (Agent Development Kit)** and **Gemini Live API**, Keats p
 
 ## Architecture
 
+![System Architecture](docs/architecture.png)
+
 - **Backend**: Python 3.12, ADK, FastAPI.
 - **Frontend**: Vanilla JS, Three.js, Web Audio API.
 - **Database**: Google Cloud Firestore.
