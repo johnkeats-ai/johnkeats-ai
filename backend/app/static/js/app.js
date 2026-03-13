@@ -2,8 +2,17 @@ import KeatsOrb from './orb.js';
 import { startAudioPlayerWorklet } from "./audio-player.js";
 import { startAudioRecorderWorklet } from "./audio-recorder.js";
 
-// Initialize the Orb
+// Initialize the Orb (with delay for visual entrance)
 const orb = new KeatsOrb('canvas-container');
+const canvas = document.querySelector('#canvas-container canvas');
+if (canvas) canvas.style.opacity = '0';
+
+setTimeout(() => {
+    if (canvas) {
+        canvas.style.transition = 'opacity 3s ease';
+        canvas.style.opacity = '1';
+    }
+}, 4000); 
 
 // State Management
 const userId = "demo-user";
@@ -48,6 +57,11 @@ function displayMessage(text, duration = 5000) {
 }
 
 function connectWebsocket() {
+    // If already connecting or open, don't double connect
+    if (websocket && (websocket.readyState === WebSocket.OPEN || websocket.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+
     const ws_url = getWebSocketUrl();
     websocket = new WebSocket(ws_url);
 
@@ -127,6 +141,16 @@ function connectWebsocket() {
         updateStatus("connection error", 'SILENCE');
     };
 }
+
+// Reconnect on visibility change (mobile screen wake)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        if (!websocket || websocket.readyState === WebSocket.CLOSED) {
+            console.log("Visibility regained, reconnecting...");
+            connectWebsocket();
+        }
+    }
+});
 
 // Decode Base64 data to Array
 function base64ToArray(base64) {

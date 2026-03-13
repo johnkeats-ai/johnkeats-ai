@@ -61,7 +61,24 @@ h1 {
   letter-spacing: 0.3rem;
   text-transform: uppercase;
   color: var(--text-dim);
-  opacity: 0.6;
+  opacity: 0;
+  animation: titlesequence 8s forwards ease-in-out;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 2s ease;
+}
+
+@keyframes titlesequence {
+  0% { opacity: 0; }
+  20% { opacity: 0.6; } /* Fade in */
+  70% { opacity: 0.6; } /* Hold */
+  100% { 
+    opacity: 0.15; 
+    top: 2rem;
+    transform: translateY(0);
+    font-size: 0.8rem;
+  } /* Move to top and fade to subtle */
 }
 
 .status-container {
