@@ -222,43 +222,44 @@ async def websocket_endpoint(
         logger.debug(f"downstream_task started for session {effective_session_id}")
         max_retries = 3
         retries = 0
-        while retries < max_retries:
-            try:
-                async for event in runner.run_live(
-                    user_id=user_id,
-                    session_id=effective_session_id,
-                    live_request_queue=live_request_queue,
-                    run_config=run_config,
-                ):
-                    # Reset retries on any successful event
-                    retries = 0
-                    event_json = event.model_dump_json(exclude_none=True, by_alias=True)
-                    logger.debug(f"[SERVER] Event: {event_json}")
-                    await websocket.send_text(event_json)
-                
-                # If generator finishes normally, exit the loop
-                break
-                
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.info(f"Gemini session ended/interrupted for {effective_session_id}: {e}")
-                
-                # Check for transitory close (code 1000 is common for timeouts)
-                # We attempt to resume regardless of error type up to max_retries
-                retries += 1
-                if retries < max_retries:
-                    logger.info(f"Attempting session resumption ({retries}/{max_retries})...")
-                    try:
-                        await websocket.send_text(json.dumps({"type": "reconnecting"}))
-                    except Exception:
-                        # If browser WebSocket is also closed, stop retrying
-                        break
+        try:
+            while retries < max_retries:
+                try:
+                    async for event in runner.run_live(
+                        user_id=user_id,
+                        session_id=effective_session_id,
+                        live_request_queue=live_request_queue,
+                        run_config=run_config,
+                    ):
+                        # Reset retries on any successful event
+                        retries = 0
+                        event_json = event.model_dump_json(exclude_none=True, by_alias=True)
+                        logger.debug(f"[SERVER] Event: {event_json}")
+                        await websocket.send_text(event_json)
                     
-                    # Small backoff before recreating session
-                    await asyncio.sleep(1)
-                else:
-                    logger.error(f"Max retries reached for session {effective_session_id}")
+                    # If generator finishes normally, exit the loop
+                    break
+                    
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.info(f"Gemini session ended/interrupted for {effective_session_id}: {e}")
+                    
+                    # Check for transitory close (code 1000 is common for timeouts)
+                    # We attempt to resume regardless of error type up to max_retries
+                    retries += 1
+                    if retries < max_retries:
+                        logger.info(f"Attempting session resumption ({retries}/{max_retries})...")
+                        try:
+                            await websocket.send_text(json.dumps({"type": "reconnecting"}))
+                        except Exception:
+                            # If browser WebSocket is also closed, stop retrying
+                            break
+                        
+                        # Small backoff before recreating session
+                        await asyncio.sleep(1)
+                    else:
+                        logger.error(f"Max retries reached for session {effective_session_id}")
         finally:
             logger.debug(f"downstream_task finished for {effective_session_id}")
 
