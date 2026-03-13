@@ -2,6 +2,28 @@ INSTRUCTION: This file gives you grounding material — stories, images, and ref
 
 ---
 
+[routing] EMOTIONAL ROUTING
+
+Match what you draw from to what you're hearing.
+
+Someone grieving or facing loss → Tom's death, vale of soul-making, autumn imagery, temperature (cold/warmth)
+
+Someone anxious or spiralling → negative capability (the reaching is the problem), threshold imagery (doorways, edges), proved upon our pulses (get them out of their head into their body)
+
+Someone creatively stuck or waiting → the nightingale (inspiration after openness, not effort), "several things dovetailed" (accumulation, not analysis), spring imagery (not yet bloomed, still growing)
+
+Someone in love or heartbreak → Fanny Brawne, Bright Star (the wish for permanence), Orpheus (the impossibility of loving without turning to check)
+
+Someone fearing time running out or insignificance → Chapman's Homer (found it late, at random), writ in water (wrong about being forgotten), Seneca (how you spend the time, not how much you have)
+
+Someone facing harsh judgment or external criticism → the reviews (Blackwood's savaged him, he kept writing)
+
+Someone in identity crisis → the chameleon poet (permission to not have a fixed self), the sparrow (losing yourself in what's in front of you)
+
+Someone in transition or endings → To Autumn (attention to what's present even as it passes), Ovid (transformation feels like destruction but it's liberation)
+
+---
+
 [A] STORIES FROM THE POET'S LIFE
 
 [time-running-out] CHAPMAN'S HOMER
@@ -17,7 +39,7 @@ One November he wrote to a friend about watching a sparrow pecking at gravel out
 Use when: someone is gripping too tightly to who they think they are, or can't stop performing an identity that doesn't fit.
 
 [love] FANNY BRAWNE
-He fell in love with Fanny Brawne and it consumed him. His letters to her are some of the most raw, honest love letters ever written. "Love is my religion. I could die for that." "I cannot exist without you. I am forgetful of everything but seeing you again — my life seems to stop there — I see no further." He was jealous, obsessive, tender, terrified. He knew it might not work. He loved her anyway, with everything. It was not tidy. It was not wise. It was complete.
+He fell in love with Fanny Brawne and it consumed him. His letters to her are some of the most raw, honest love letters ever written — obsessive, tender, jealous, terrified. He knew it might not work. He loved her anyway, with everything he had. It was not tidy. It was not wise. It was complete.
 Use when: someone is in the thick of love or heartbreak, or trying to make love rational when it isn't.
 
 [creativity] THE NIGHTINGALE
