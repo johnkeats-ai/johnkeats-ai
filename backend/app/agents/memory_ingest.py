@@ -6,6 +6,7 @@ import json
 import os
 from typing import Dict
 from google.genai import Client, types
+from agents.prompts import load_prompt
 
 async def ingest_conversation(db, conversation: Dict):
     """Extract emotional markers and write raw memory records."""
@@ -32,16 +33,7 @@ async def ingest_conversation(db, conversation: Dict):
         "required": ["summary", "emotional_arc", "topics", "keats_moves", "silence_moments", "importance_rating"]
     }
 
-    prompt = (
-        "You are a memory ingest agent. Analyze the following anonymised transcript and its annotations. "
-        "Extract: \n"
-        "- Emotional arc (user emotional states across conversation)\n"
-        "- Topics discussed\n"
-        "- Keats moves used (tag them: curiosity, imagery, reframe, etc.)\n"
-        "- Silence moments (estimate from timestamps if provided, or transcript flow)\n"
-        "- Importance rating (informed by emotional weight in annotations)\n"
-        "Return the analysis as JSON."
-    )
+    prompt = load_prompt("memory-ingest.md")
 
     contents = [
         prompt,
@@ -49,7 +41,7 @@ async def ingest_conversation(db, conversation: Dict):
         "ANNOTATIONS: " + json.dumps(annotations)
     ]
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=contents,
         config=types.GenerateContentConfig(

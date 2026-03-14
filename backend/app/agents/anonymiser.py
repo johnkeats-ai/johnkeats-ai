@@ -9,6 +9,7 @@ import re
 import os
 from typing import List, Dict, Tuple
 from google.genai import Client, types
+from agents.prompts import load_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -83,15 +84,9 @@ async def contextual_anonymise(transcript: List[Dict]) -> Tuple[List[Dict], List
         "required": ["anonymised_transcript", "annotations"]
     }
 
-    prompt = (
-        "You are an anonymization expert. Read the following transcript and replace all contextual PII "
-        "(names in context, workplaces, institutions, locations, specific dates) with bracketed labels like [NAME], [LOCATION], [INSTITUTION], [DATE]. "
-        "Also, for every substitution made (including any already marked as [EMAIL], [PHONE], [ADDRESS]), generate emotional weight annotations. "
-        "The goal is to preserve the emotional context while removing identifiable details. "
-        "Return the fully anonymised transcript and the list of annotations in the specified JSON format."
-    )
+    prompt = load_prompt("anonymiser-contextual.md") + "\n" + load_prompt("anonymiser-annotations.md")
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=[prompt, json.dumps(transcript)],
         config=types.GenerateContentConfig(

@@ -6,13 +6,23 @@ import json
 import os
 from typing import Dict, List
 from google.genai import Client, types
+from agents.prompts import load_prompt
 
 async def generate_insights(db, baseline: Dict):
     """Generate specific calibration recommendations based on latest baseline + pending signals."""
     
     # Get pending signals
     signal_docs = db.collection("signals").where("status", "==", "pending").stream()
-    signals = [doc.to_dict() | {"id": doc.id} for doc in signal_docs]
+    def sanitize(obj):
+        if hasattr(obj, "isoformat"):
+            return obj.isoformat()
+        if isinstance(obj, dict):
+            return {k: sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [sanitize(i) for i in obj]
+        return obj
+
+    signals = [sanitize(doc.to_dict() | {"id": doc.id}) for doc in signal_docs]
     
     client = Client(
         vertexai=True,
@@ -64,13 +74,7 @@ async def generate_insights(db, baseline: Dict):
         "required": ["calibration_notes", "weight_adjustments", "anonymiser_calibration", "next_priority"]
     }
 
-    prompt = (
-        "You are an Orchestrator Agent. Read the latest baseline report and pending signals. "
-        "Generate specific calibration recommendations targeting exact sections of the system prompt or KB files. "
-        "Recommend weight adjustments for scoring dimensions based on engagement correlation evidence. "
-        "Recommend anonymiser calibrations if needed. "
-        "Return the analysis as JSON."
-    )
+    prompt = load_prompt("orchestrator.md")
 
     contents = [
         prompt,
@@ -78,7 +82,7 @@ async def generate_insights(db, baseline: Dict):
         "PENDING_SIGNALS: " + json.dumps(signals)
     ]
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=contents,
         config=types.GenerateContentConfig(

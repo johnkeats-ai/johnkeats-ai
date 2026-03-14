@@ -7,6 +7,7 @@ import os
 from typing import List, Dict
 from google.genai import Client, types
 from google.cloud import firestore
+from agents.prompts import load_prompt
 
 async def consolidate_memories(db):
     """Triggered after 3+ new scored conversations. Finds cross-conversation connections."""
@@ -15,7 +16,16 @@ async def consolidate_memories(db):
     docs = db.collection("memories").document("raw").collection("records") \
              .where("consolidated", "==", False).stream()
     
-    unconsolidated = [doc.to_dict() | {"id": doc.id} for doc in docs]
+    def sanitize(obj):
+        if hasattr(obj, "isoformat"):
+            return obj.isoformat()
+        if isinstance(obj, dict):
+            return {k: sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [sanitize(i) for i in obj]
+        return obj
+
+    unconsolidated = [sanitize(doc.to_dict() | {"id": doc.id}) for doc in docs]
     
     if len(unconsolidated) < 3:
         return {"status": "skipped", "reason": "not enough memories to consolidate"}
@@ -57,17 +67,9 @@ async def consolidate_memories(db):
         "required": ["connections", "signals"]
     }
 
-    prompt = (
-        "You are a memory consolidation agent. Read the following raw memory records from multiple conversations. "
-        "Find cross-conversation connections and patterns: \n"
-        "- Which imagery domains correlate with engagement?\n"
-        "- Which moves correlate with longer conversations?\n"
-        "- Which patterns precede drop-offs?\n"
-        "Generate Signals targeting specific prompt/KB sections for improvement. "
-        "Return the analysis as JSON."
-    )
+    prompt = load_prompt("memory-consolidate.md")
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=[prompt, json.dumps(unconsolidated)],
         config=types.GenerateContentConfig(
@@ -84,10 +86,10 @@ async def consolidate_memories(db):
         sig_ref = db.collection("signals").document()
         batch.set(sig_ref, sig | {"status": "pending", "created_at": firestore.SERVER_TIMESTAMP})
         
-    for mem in unconconsolidated:
+    for mem in unconsolidated:
         mem_ref = db.collection("memories").document("raw").collection("records").document(mem["id"])
         batch.update(mem_ref, {"consolidated": True})
         
-    await batch.commit()
+    batch.commit()
     
     return result

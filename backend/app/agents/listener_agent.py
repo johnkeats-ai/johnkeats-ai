@@ -7,6 +7,7 @@ import json
 import os
 from typing import Dict, List
 from google.genai import Client, types
+from agents.prompts import load_prompt
 
 def compute_deterministic_metrics(transcript: List[Dict]) -> Dict:
     """Python computes deterministic signals."""
@@ -71,18 +72,7 @@ async def score_conversation(db, conversation: Dict):
         "required": ["emotional_match", "curiosity", "silence_quality", "solution_resistance", "image_quality", "conversation_arc", "repetition_score", "overall_score", "qualitative_summary"]
     }
 
-    prompt = (
-        "You are a Listener agent evaluating Keats's attunement quality. "
-        "Score from 0.0 to 1.0 on: \n"
-        "- EMOTIONAL_MATCH: How well Keats matched user state. Weight turns with emotional annotations > 0.5 as 2x.\n"
-        "- CURIOSITY: Count specific vs generic questions.\n"
-        "- SILENCE_QUALITY: Assessment of productive silence.\n"
-        "- SOLUTION_RESISTANCE: Did Keats resist giving advice or solutions?\n"
-        "- IMAGE_QUALITY: Specificity and grounding of imagery.\n"
-        "- CONVERSATION_ARC: Organic flow vs forced shifts.\n"
-        "- REPETITION: Qualitative detection of repeated moves.\n"
-        "Return the scores and a qualitative summary as JSON."
-    )
+    prompt = load_prompt("listener-rubric.md")
 
     contents = [
         prompt,
@@ -91,7 +81,7 @@ async def score_conversation(db, conversation: Dict):
         "DETERMINISTIC_METRICS: " + json.dumps(deterministic)
     ]
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=contents,
         config=types.GenerateContentConfig(

@@ -35,7 +35,16 @@ async def generate_baseline(db):
     # Get recent scores (e.g., last 30 days)
     # For hackathon, just get all current scores
     docs = db.collection("conversation_scores").stream()
-    scores = [doc.to_dict() | {"id": doc.id} for doc in docs]
+    def sanitize(obj):
+        if hasattr(obj, "isoformat"):
+            return obj.isoformat()
+        if isinstance(obj, dict):
+            return {k: sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [sanitize(i) for i in obj]
+        return obj
+
+    scores = [sanitize(doc.to_dict() | {"id": doc.id}) for doc in docs]
     
     if not scores:
         return {"status": "skipped", "reason": "no scores found"}
@@ -70,7 +79,7 @@ async def generate_baseline(db):
         "Return the analysis as JSON."
     )
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=[prompt, json.dumps(stats)],
         config=types.GenerateContentConfig(

@@ -7,6 +7,7 @@ import json
 import os
 from typing import Dict
 from google.genai import Client, types
+from agents.prompts import load_prompt
 
 async def audit_pii(anonymised_transcript: list) -> Dict:
     client = Client(
@@ -36,18 +37,9 @@ async def audit_pii(anonymised_transcript: list) -> Dict:
         "required": ["verdict", "remaining_pii", "inference_risks"]
     }
 
-    prompt = (
-        "You are an adversarial PII auditor. Read ONLY the following anonymised transcript. "
-        "Try to find remaining PII that was missed. Check for inference risks: can multiple "
-        "anonymised details be combined to identify someone? Check for temporal identifiers. "
-        "Verdicts: \n"
-        "- BLOCKED: Any critical severity PII (full name, specific address, full credit card).\n"
-        "- FLAGGED: Any high severity PII or medium inference risks.\n"
-        "- CLEAN: Genuinely clean.\n"
-        "When in doubt, flag. False positives are better than missed PII."
-    )
+    prompt = load_prompt("pii-auditor.md")
 
-    response = await client.models.generate_content(
+    response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
         contents=[prompt, json.dumps(anonymised_transcript)],
         config=types.GenerateContentConfig(
