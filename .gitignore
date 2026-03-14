@@ -10,3 +10,4 @@ KeatsianAI/
 diagnostic_auth.py
 env_file
 *.egg-info/
+*.egg-info/
