@@ -7,3 +7,6 @@ __pycache__/
 .DS_Store
 .local_only/
 KeatsianAI/
+diagnostic_auth.py
+env_file
+*.egg-info/
