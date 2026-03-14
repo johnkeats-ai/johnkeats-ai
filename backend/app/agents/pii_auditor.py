@@ -48,7 +48,7 @@ async def audit_pii(anonymised_transcript: list) -> Dict:
     )
 
     response = await client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=[prompt, json.dumps(anonymised_transcript)],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

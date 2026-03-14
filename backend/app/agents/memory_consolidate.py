@@ -68,7 +68,7 @@ async def consolidate_memories(db):
     )
 
     response = await client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=[prompt, json.dumps(unconsolidated)],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

@@ -92,7 +92,7 @@ async def contextual_anonymise(transcript: List[Dict]) -> Tuple[List[Dict], List
     )
 
     response = await client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=[prompt, json.dumps(transcript)],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

@@ -53,7 +53,7 @@ async def validate_annotations(original_transcript: list, anonymised_transcript:
     ]
 
     response = await client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=contents,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

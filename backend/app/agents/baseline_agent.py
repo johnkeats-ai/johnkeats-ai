@@ -71,7 +71,7 @@ async def generate_baseline(db):
     )
 
     response = await client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=[prompt, json.dumps(stats)],
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
