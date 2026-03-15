@@ -19,7 +19,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --region=${REGION} \
   --allow-unauthenticated \
   --memory=1Gi \
-  --timeout=300 \
+  --timeout=900 \
   --set-env-vars="GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION}" \
   --project=${PROJECT_ID}
 
