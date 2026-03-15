@@ -1,3 +1,11 @@
+_current_user_id = None
+
+def set_current_user(user_id: str):
+    """Called by main.py when a new WebSocket session starts."""
+    global _current_user_id
+    _current_user_id = user_id
+
+
 def save_to_passage(
     uncertainty_text: str,
     theme: str,
@@ -16,6 +24,7 @@ def save_to_passage(
         "text": uncertainty_text,
         "theme": theme,
         "status": status,
+        "user_id": _current_user_id,
         "created_at": firestore.SERVER_TIMESTAMP
     })
     return {"saved": True, "id": doc_ref.id}
@@ -35,6 +44,8 @@ def get_passage_history(
     query = db.collection("passages").order_by(
         "created_at", direction=firestore.Query.DESCENDING
     ).limit(limit)
+    if _current_user_id:
+        query = query.where("user_id", "==", _current_user_id)
     if theme_filter:
         query = query.where("theme", "==", theme_filter)
     results = []

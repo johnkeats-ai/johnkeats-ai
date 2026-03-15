@@ -26,6 +26,7 @@ load_dotenv(str(env_path))
 # Import agent after loading environment variables
 # pylint: disable=wrong-import-position
 from keats_agent.agent import keats_agent
+from tools.passage_tools import set_current_user
 
 # Configure logging
 logging.basicConfig(
@@ -84,6 +85,9 @@ async def websocket_endpoint(
     
     # Bug 3: Generate unique session ID to prevent context leak between users
     effective_session_id = f"{session_id}-{uuid.uuid4().hex[:8]}"
+
+    # Set user context for passage tools
+    set_current_user(user_id)
     
     logger.debug(
         f"WebSocket connection request: user_id={user_id}, session_id={session_id}, "
