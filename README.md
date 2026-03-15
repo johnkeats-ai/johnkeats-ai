@@ -1,16 +1,23 @@
-## JohnKeats.AI
+# JohnKeats.AI
+
 A voice-first AI companion that holds uncertainty instead of solving it. Built on Gemini 2.5 Flash Native Audio with a governed calibration pipeline that learns from every conversation.
-Built for the Gemini Live Agent Challenge.
+
+**Built for the Gemini Live Agent Challenge.**
 
 ## Live Demo
-johnkeats.ai
+
+[johnkeats.ai](https://johnkeats.ai)
 
 ## Demo Video
+
 [YouTube — coming soon]
 
 ## What It Is
+
 A voice agent with one rule: hold, don't solve. The user speaks. Keats listens. It reflects back what was said — especially the things the user didn't realise they said. It doesn't offer solutions, action plans, or next steps unless asked three times.
+
 The interface is a breathing orb on a black screen. No chat UI. No avatar. Audio-reactive — pulses when Keats speaks, shifts cool when the user speaks, goes still in silence.
+
 Behind the conversation, a governed calibration pipeline anonymises transcripts, scores Keats's attunement quality across six dimensions, and generates calibration recommendations under human review. The voice agent never depends on the learning loop. If the pipeline breaks, the product works exactly as before.
 
 ## Architecture
@@ -35,59 +42,72 @@ Behind the conversation, a governed calibration pipeline anonymises transcripts,
 ## Local Development
 
 1. Clone the repo:
-
-bash   git clone https://github.com/johnkeats-ai/johnkeats-ai.git
-   cd johnkeats-ai
+```bash
+git clone https://github.com/johnkeats-ai/johnkeats-ai.git
+cd johnkeats-ai
+```
 
 2. Set up Python 3.11 environment:
-
-bash   python3.11 -m venv .venv
-   source .venv/bin/activate
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
 
 3. Copy the example environment file and fill in your values:
-
-bash   cp .env.example backend/app/.env
+```bash
+cp .env.example backend/app/.env
+```
 
 Required variables:
-
+```
 GOOGLE_CLOUD_PROJECT=johnkeats-ai
 GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_GENAI_USE_VERTEXAI=TRUE
 KEATS_VOICE_NAME=Achird
-
+```
 
 4. Install dependencies:
-
-bash   cd backend/app
-   pip install -e .
+```bash
+cd backend/app
+pip install -e .
+```
 
 5. Set SSL certificate path:
-
-bash   export SSL_CERT_FILE=$(python -m certifi)
+```bash
+export SSL_CERT_FILE=$(python -m certifi)
+```
 
 6. Run the server:
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
-bash   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-7. Open http://localhost:8000 in your browser.
+7. Open [http://localhost:8000](http://localhost:8000) in your browser.
 
 ## Running the Calibration Pipeline
 
 After having conversations with Keats, process the accumulated transcripts:
-bashcd backend/app
+
+```bash
+cd backend/app
 export GOOGLE_CLOUD_PROJECT=johnkeats-ai
 export GOOGLE_CLOUD_LOCATION=us-central1
 export GOOGLE_GENAI_USE_VERTEXAI=TRUE
 python3 -m agents.handshake
+```
+
 This runs the full pipeline: anonymisation → scoring → consolidation → baseline → orchestrator → policy gate.
 
 ## Cloud Deployment
 
 Requires a GCP project with Vertex AI, Firestore, Cloud Run, and Artifact Registry APIs enabled.
-bash./deploy.sh
+
+```bash
+./deploy.sh
 ```
 
-## Project Structure 
+## Project Structure
+
 ```
 johnkeats-ai/
 ├── backend/app/
@@ -162,14 +182,15 @@ Four Firestore-backed tools power the agent's memory:
 - **resolve_uncertainty** — marks an uncertainty as resolved when the user indicates closure
 - **crisis_resources** — provides localised crisis support information (fires only on explicit self-harm or suicidal expression)
 
-##Governed Calibration Pipeline
+## Governed Calibration Pipeline
 
 Fourteen agents processing conversations through two data paths:
+
 **Path 1:** User Memory — full transcript with PII retained, per-user isolation. Keats remembers who you are across sessions.
 
 **Path 2:** Anonymised Learning — five-stage anonymisation, adversarial audit, emotional weight annotation. Scored across six attunement dimensions. Cross-conversation pattern detection generates calibration hypotheses filtered by a deterministic policy gate. All recommendations require human approval.
 
-Agent prompts are extracted to backend/app/agents/prompts/ as readable markdown for auditability.
+Agent prompts are extracted to `backend/app/agents/prompts/` as readable markdown for auditability.
 
 Principle Zero: the voice agent never depends on the learning loop.
 
