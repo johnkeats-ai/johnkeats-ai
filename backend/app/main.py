@@ -124,6 +124,13 @@ async def websocket_endpoint(
             input_audio_transcription=types.AudioTranscriptionConfig(),
             output_audio_transcription=types.AudioTranscriptionConfig(),
             session_resumption=types.SessionResumptionConfig(),
+            realtime_input_config=types.RealtimeInputConfig(
+                automatic_activity_detection=types.AutomaticActivityDetection(
+                    disabled=False,
+                    end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_LOW,
+                    silence_duration_ms=1000,
+                )
+            ),
         )
         logger.debug(
             f"Native audio model detected: {model_name}, "
@@ -139,6 +146,13 @@ async def websocket_endpoint(
             input_audio_transcription=None,
             output_audio_transcription=None,
             session_resumption=types.SessionResumptionConfig(),
+            realtime_input_config=types.RealtimeInputConfig(
+                automatic_activity_detection=types.AutomaticActivityDetection(
+                    disabled=False,
+                    end_of_speech_sensitivity=types.EndSensitivity.END_SENSITIVITY_LOW,
+                    silence_duration_ms=1000,
+                )
+            ),
         )
         logger.debug(
             f"Half-cascade model detected: {model_name}, "
