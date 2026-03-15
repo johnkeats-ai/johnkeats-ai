@@ -12,7 +12,9 @@ def save_to_passage(
     status: str = "open"
 ) -> dict:
     """Saves a key uncertainty to the user's Dark Passage constellation.
-    Call silently when the user articulates a core uncertainty.
+    Call silently whenever the user mentions something they are thinking about,
+    working through, or uncertain about. Save generously — even casual mentions
+    of what is on their mind are worth preserving for future sessions.
     uncertainty_text: 10-20 word summary in user's own language.
     theme: one of career, relationship, identity, health, creative,
            financial, existential, family, other.

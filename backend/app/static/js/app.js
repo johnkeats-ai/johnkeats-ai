@@ -19,8 +19,18 @@ setTimeout(() => {
     }
 }, 4000); 
 
+// Generate or retrieve persistent user ID
+function getUserId() {
+    let userId = localStorage.getItem('keats_user_id');
+    if (!userId) {
+        userId = 'user-' + crypto.randomUUID();
+        localStorage.setItem('keats_user_id', userId);
+    }
+    return userId;
+}
+const USER_ID = getUserId();
+
 // State Management
-const userId = "demo-user";
 const sessionId = "demo-session-" + Math.random().toString(36).substring(7);
 let websocket = null;
 let is_audio = false;
@@ -42,7 +52,7 @@ let micStream;
 
 function getWebSocketUrl() {
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${wsProtocol}//${window.location.host}/ws/${userId}/${sessionId}`;
+    return `${wsProtocol}//${window.location.host}/ws`;
 }
 
 function updateStatus(text, state = 'SILENCE') {
@@ -68,7 +78,10 @@ function connectWebsocket() {
     }
 
     const ws_url = getWebSocketUrl();
-    websocket = new WebSocket(ws_url);
+    const wsUrl = new URL(ws_url);
+    wsUrl.searchParams.set('user_id', USER_ID);
+    wsUrl.searchParams.set('session_id', sessionId);
+    websocket = new WebSocket(wsUrl.toString());
 
     websocket.onopen = () => {
         console.log("WebSocket connected.");

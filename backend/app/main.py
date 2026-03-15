@@ -73,16 +73,18 @@ async def root():
 # ========================================
 
 
-@app.websocket("/ws/{user_id}/{session_id}")
+@app.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    user_id: str,
-    session_id: str,
     proactivity: bool = False,
     affective_dialog: bool = False,
 ) -> None:
     """WebSocket endpoint for bidirectional streaming with ADK."""
     
+    # Get IDs from query parameters
+    user_id = websocket.query_params.get("user_id", f"anon-{uuid.uuid4().hex[:8]}")
+    session_id = websocket.query_params.get("session_id", f"session-{uuid.uuid4().hex[:8]}")
+
     # Bug 3: Generate unique session ID to prevent context leak between users
     effective_session_id = f"{session_id}-{uuid.uuid4().hex[:8]}"
 
