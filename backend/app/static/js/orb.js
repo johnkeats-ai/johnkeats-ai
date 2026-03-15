@@ -79,6 +79,11 @@ class KeatsOrb {
         });
         this.pulse = new THREE.Mesh(pulseGeometry, pulseMaterial);
         this.scene.add(this.pulse);
+
+        // Transition targets
+        this.targetColor = new THREE.Color(0xD4A574);
+        this.targetScale = 1.0;
+        this.currentScale = 1.0;
     }
 
     onResize() {
@@ -91,20 +96,23 @@ class KeatsOrb {
         // States: SILENCE, KEATS_SPEAKING, USER_SPEAKING
         switch(state) {
             case 'KEATS_SPEAKING':
-                this.material.uniforms.color.value.setHex(0xD4B08C);
+                this.targetColor.setHex(0xD4B08C);
                 this.targetIntensity = 1.2 + value * 0.5;
-                this.pulseRate = 1.5;
+                this.pulseRate = 2.0;
+                this.targetScale = 1.0;
                 break;
             case 'USER_SPEAKING':
-                this.material.uniforms.color.value.setHex(0xA5C9D4); // Blue-ish
+                this.targetColor.setHex(0xA5C9D4); // Blue-ish
                 this.targetIntensity = 0.8 + value * 0.3;
                 this.pulseRate = 0.8;
+                this.targetScale = 1.0;
                 break;
             case 'SILENCE':
             default:
-                this.material.uniforms.color.value.setHex(0xD4A574);
-                this.targetIntensity = 0.5;
-                this.pulseRate = 0.4;
+                this.targetColor.setHex(0xD4A574);
+                this.targetIntensity = 0.3;
+                this.pulseRate = 0.25;
+                this.targetScale = 0.7;
                 break;
         }
     }
@@ -116,14 +124,20 @@ class KeatsOrb {
         this.material.uniforms.time.value = time;
         
         // Smooth intensity transition
-        if (this.targetIntensity) {
+        if (this.targetIntensity !== undefined) {
             this.material.uniforms.intensity.value += (this.targetIntensity - this.material.uniforms.intensity.value) * 0.1;
         }
+
+        // Smooth color lerp
+        this.material.uniforms.color.value.lerp(this.targetColor, 0.05);
+
+        // Smooth scale transition
+        this.currentScale += (this.targetScale - this.currentScale) * 0.05;
 
         this.orb.rotation.y += 0.002;
         this.orb.rotation.x += 0.001;
         
-        const pulseScale = 1.0 + Math.sin(time * this.pulseRate || 0.4) * 0.05;
+        const pulseScale = this.currentScale + Math.sin(time * (this.pulseRate || 0.4)) * 0.2;
         this.orb.scale.set(pulseScale, pulseScale, pulseScale);
         this.pulse.scale.set(pulseScale * 1.1, pulseScale * 1.1, pulseScale * 1.1);
         this.pulse.rotation.y -= 0.003;

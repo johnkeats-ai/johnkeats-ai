@@ -62,7 +62,6 @@ h1 {
   text-transform: uppercase;
   color: var(--text-dim);
   opacity: 0;
-  animation: titlesequence 8s forwards ease-in-out;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);

@@ -7,10 +7,15 @@ const orb = new KeatsOrb('canvas-container');
 const canvas = document.querySelector('#canvas-container canvas');
 if (canvas) canvas.style.opacity = '0';
 
+const mainTitle = document.getElementById('mainTitle');
+
 setTimeout(() => {
     if (canvas) {
         canvas.style.transition = 'opacity 3s ease';
         canvas.style.opacity = '1';
+    }
+    if (mainTitle) {
+        mainTitle.style.animation = 'titlesequence 8s forwards ease-in-out';
     }
 }, 4000); 
 
