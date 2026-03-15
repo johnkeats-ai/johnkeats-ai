@@ -123,14 +123,14 @@ function connectWebsocket() {
         if (adkEvent.inputTranscription) {
             orb.setState('USER_SPEAKING', 0.8);
             if (adkEvent.inputTranscription.text) {
-                statusText.textContent = "you: " + adkEvent.inputTranscription.text.toLowerCase();
+                // statusText.textContent = "you: " + adkEvent.inputTranscription.text.toLowerCase();
             }
         }
 
         if (adkEvent.outputTranscription) {
             orb.setState('KEATS_SPEAKING', 1.0);
             if (adkEvent.outputTranscription.text) {
-                displayMessage(adkEvent.outputTranscription.text);
+                // displayMessage(adkEvent.outputTranscription.text);
             }
         }
 
