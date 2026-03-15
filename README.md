@@ -1,20 +1,17 @@
-# JohnKeats.AI
-
-> The first AI agent designed not to solve your problem, but to sit with you in it.
-
-A voice-first philosophical companion built on John Keats' 200-year-old idea of **negative capability** — the ability to hold uncertainty without reaching for premature answers. Unlike every other AI agent that races to solve your problem, Keats sits with you in the question.
-
-The visual environment is a single breathing point of light in darkness, audio-reactive to the conversation. You don't look at Keats. You listen. The darkness is the product.
-
-**Built for the Gemini Live Agent Challenge.**
+## JohnKeats.AI
+A voice-first AI companion that holds uncertainty instead of solving it. Built on Gemini 2.5 Flash Native Audio with a governed calibration pipeline that learns from every conversation.
+Built for the Gemini Live Agent Challenge.
 
 ## Live Demo
-
-[johnkeats.ai](https://johnkeats.ai)
+johnkeats.ai
 
 ## Demo Video
-
 [YouTube — coming soon]
+
+## What It Is
+A voice agent with one rule: hold, don't solve. The user speaks. Keats listens. It reflects back what was said — especially the things the user didn't realise they said. It doesn't offer solutions, action plans, or next steps unless asked three times.
+The interface is a breathing orb on a black screen. No chat UI. No avatar. Audio-reactive — pulses when Keats speaks, shifts cool when the user speaks, goes still in silence.
+Behind the conversation, a governed calibration pipeline anonymises transcripts, scores Keats's attunement quality across six dimensions, and generates calibration recommendations under human review. The voice agent never depends on the learning loop. If the pipeline breaks, the product works exactly as before.
 
 ## Architecture
 
@@ -38,75 +35,100 @@ The visual environment is a single breathing point of light in darkness, audio-r
 ## Local Development
 
 1. Clone the repo:
-   ```bash
-   git clone https://github.com/johnkeats-ai/johnkeats-ai.git
+
+bash   git clone https://github.com/johnkeats-ai/johnkeats-ai.git
    cd johnkeats-ai
-   ```
 
 2. Set up Python 3.11 environment:
-   ```bash
-   python3.11 -m venv .venv
+
+bash   python3.11 -m venv .venv
    source .venv/bin/activate
-   ```
 
 3. Copy the example environment file and fill in your values:
-   ```bash
-   cp .env.example backend/app/.env
-   ```
 
-   Required variables:
-   - `GOOGLE_CLOUD_PROJECT=johnkeats-ai`
-   - `GOOGLE_CLOUD_LOCATION=us-central1`
-   - `GOOGLE_GENAI_USE_VERTEXAI=TRUE`
-   - `KEATS_VOICE_NAME=Achird`
+bash   cp .env.example backend/app/.env
+
+Required variables:
+
+GOOGLE_CLOUD_PROJECT=johnkeats-ai
+GOOGLE_CLOUD_LOCATION=us-central1
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
+KEATS_VOICE_NAME=Achird
+
 
 4. Install dependencies:
-   ```bash
-   cd backend/app
+
+bash   cd backend/app
    pip install -e .
-   ```
 
 5. Set SSL certificate path:
-   ```bash
-   export SSL_CERT_FILE=$(python -m certifi)
-   ```
+
+bash   export SSL_CERT_FILE=$(python -m certifi)
 
 6. Run the server:
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
 
-7. Open [http://localhost:8000](http://localhost:8000) in your browser.
+bash   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+7. Open http://localhost:8000 in your browser.
+
+## Running the Calibration Pipeline
+
+After having conversations with Keats, process the accumulated transcripts:
+bashcd backend/app
+export GOOGLE_CLOUD_PROJECT=johnkeats-ai
+export GOOGLE_CLOUD_LOCATION=us-central1
+export GOOGLE_GENAI_USE_VERTEXAI=TRUE
+python3 -m agents.handshake
+This runs the full pipeline: anonymisation → scoring → consolidation → baseline → orchestrator → policy gate.
 
 ## Cloud Deployment
 
 Requires a GCP project with Vertex AI, Firestore, Cloud Run, and Artifact Registry APIs enabled.
-
-```bash
-./deploy.sh
+bash./deploy.sh
 ```
 
-## Project Structure
-
+## Project Structure 
 ```
 johnkeats-ai/
 ├── backend/app/
 │   ├── keats_agent/
 │   │   ├── __init__.py
-│   │   └── agent.py          # Agent definition + system prompt
+│   │   └── agent.py              # Voice agent definition + system prompt
 │   ├── tools/
 │   │   ├── __init__.py
-│   │   └── passage_tools.py  # Firestore tools
+│   │   └── passage_tools.py      # Firestore tools (save/retrieve/resolve uncertainties)
+│   ├── agents/
+│   │   ├── anonymiser.py         # 3-pass PII anonymisation
+│   │   ├── pii_auditor.py        # Adversarial PII re-identification review
+│   │   ├── annotation_validator.py # Adversarial emotional weight validation
+│   │   ├── anonymiser_gate.py    # Deterministic gate (quarantine/proceed)
+│   │   ├── listener_agent.py     # 6-dimension attunement scoring
+│   │   ├── memory_ingest.py      # Emotional marker extraction
+│   │   ├── memory_consolidate.py # Cross-conversation pattern detection
+│   │   ├── memory_query.py       # Dual-source context retrieval
+│   │   ├── user_memory.py        # Per-user conversation persistence
+│   │   ├── baseline_agent.py     # Aggregate stats and trend analysis
+│   │   ├── orchestrator_agent.py # Calibration hypothesis generation
+│   │   ├── policy_gate.py        # Deterministic behavioural boundary enforcement
+│   │   ├── run_analysis.py       # Manual pipeline runner
+│   │   ├── handshake.py          # Scheduled batch processor
+│   │   └── prompts/              # All agent prompts as readable markdown
+│   │       ├── README.md
+│   │       ├── anonymiser-contextual.md
+│   │       ├── pii-auditor.md
+│   │       ├── listener-emotional-match.md
+│   │       ├── orchestrator.md
+│   │       └── ...
 │   ├── static/
 │   │   ├── css/style.css
 │   │   ├── js/
-│   │   │   ├── app.js         # WebSocket + state machine
-│   │   │   ├── orb.js         # Three.js breathing orb
+│   │   │   ├── app.js            # WebSocket + state machine
+│   │   │   ├── orb.js            # Three.js breathing orb
 │   │   │   ├── audio-player.js
 │   │   │   ├── audio-recorder.js
 │   │   │   └── ...
 │   │   └── index.html
-│   ├── main.py                # FastAPI + WebSocket handler
+│   ├── main.py                   # FastAPI + WebSocket handler
 │   └── pyproject.toml
 ├── knowledge-base/
 │   ├── kb-01-keats-philosophy.txt
@@ -114,7 +136,8 @@ johnkeats-ai/
 │   ├── kb-03-user-antipatterns.txt
 │   └── kb-04-boundaries-and-safety.txt
 ├── docs/
-│   └── architecture.png
+│   ├── architecture.png
+│   └── firestore-screenshots/
 ├── deploy.sh
 ├── Dockerfile
 ├── .env.example
@@ -138,6 +161,17 @@ Four Firestore-backed tools power the agent's memory:
 - **get_passage_history** — retrieves recent uncertainties to inform listening (never read back to user)
 - **resolve_uncertainty** — marks an uncertainty as resolved when the user indicates closure
 - **crisis_resources** — provides localised crisis support information (fires only on explicit self-harm or suicidal expression)
+
+##Governed Calibration Pipeline
+
+Fourteen agents processing conversations through two data paths:
+**Path 1:** User Memory — full transcript with PII retained, per-user isolation. Keats remembers who you are across sessions.
+
+**Path 2:** Anonymised Learning — five-stage anonymisation, adversarial audit, emotional weight annotation. Scored across six attunement dimensions. Cross-conversation pattern detection generates calibration hypotheses filtered by a deterministic policy gate. All recommendations require human approval.
+
+Agent prompts are extracted to backend/app/agents/prompts/ as readable markdown for auditability.
+
+Principle Zero: the voice agent never depends on the learning loop.
 
 ## Blog Post
 
