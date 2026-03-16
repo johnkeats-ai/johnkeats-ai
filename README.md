@@ -10,7 +10,7 @@ A voice-first AI companion that holds uncertainty instead of solving it. Built o
 
 ## Demo Video
 
-[YouTube — coming soon]
+[YouTube](https://youtu.be/zNKhR3e2ym4)
 
 ## What It Is
 
@@ -196,7 +196,7 @@ Principle Zero: the voice agent never depends on the learning loop.
 
 ## Blog Post
 
-[Coming soon — dev.to]
+[dev.to](https://dev.to/keatsian-ai/building-a-philosophical-ai-companion-in-48-hours-with-gemini-and-google-cloud-5hl0)
 
 ## License
 
