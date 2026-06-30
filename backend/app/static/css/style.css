@@ -176,4 +176,5 @@ button:disabled {
 }
 @media (max-width: 600px) {
   .site-footer { font-size: 0.62rem; padding: 0.5rem 0.8rem; }
+  .status-container { bottom: 4.5rem; }   /* lift above the 2-line footer */
 }
