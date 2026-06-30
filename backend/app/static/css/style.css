@@ -141,3 +141,39 @@ button:disabled {
 .hidden {
   display: none;
 }
+
+/* --- Site footer (showcase credit) --- */
+.site-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;            /* match interface pattern: let clicks fall through */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+.site-footer .footer-award {
+  letter-spacing: 0.02em;
+}
+.site-footer .footer-credit a {
+  color: var(--text-warm);
+  text-decoration: none;
+  pointer-events: auto;            /* the link itself IS clickable */
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.site-footer .footer-credit a:hover {
+  border-bottom-color: var(--text-warm);
+}
+@media (max-width: 600px) {
+  .site-footer { font-size: 0.62rem; padding: 0.5rem 0.8rem; }
+}
